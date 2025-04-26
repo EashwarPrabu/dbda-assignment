@@ -1,0 +1,5 @@
+QUERY_MAP = {}
+
+QUERY_PARAM_ORDER = {}
+
+QUERY_HEADERS = {}
