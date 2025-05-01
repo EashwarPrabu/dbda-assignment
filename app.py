@@ -26,7 +26,7 @@ def show_admin_menu():
                           'Add a new Party to the DB',
                           'Add a new Candidate to the DB',
                           'Add a new Constituency to the DB',
-                          'Cast your vote',
+                          'Add a new Admin to the DB',
                           'Exit to Main Menu'
                       ])
     ]
@@ -52,9 +52,8 @@ def show_user_menu():
 def add_admin():
     console.print(Panel("[bold green]Add a New Admin[/bold green]"))
     questions = [
-        inquirer.Text('name', message='Full name'),
         inquirer.Text('email', message='Email'),
-        inquirer.List('pwd', message='Password'),
+        inquirer.Password('pwd', message='Password'),
         inquirer.Text('voter_id', message='Voter ID'),
     ]
     answers = inquirer.prompt(questions)
@@ -100,7 +99,7 @@ def add_party():
     questions = [
         inquirer.Text('name', message='Party name'),
         inquirer.Text('symbol', message='Party symbol'),
-        inquirer.Text('party_leader', message='Party leader'),
+        inquirer.Text('leader', message='Party leader'),
     ]
     answers = inquirer.prompt(questions)
     console.print("\n[bold cyan]Party Details:[/bold cyan]")
@@ -116,7 +115,7 @@ def add_party():
 def add_candidate():
     console.print(Panel("[bold green]Add a New Candidate[/bold green]"))
     print_table("select_all_constituencies", "Constituencies")
-    print_table("select_all_parties", "Parties")
+    print_table("show_all_parties", "Parties")
     questions = [
         inquirer.Text('voter_id', message='Voter ID'),
         inquirer.Text('party_id', message='Enter Party id from the above table'),
@@ -125,9 +124,12 @@ def add_candidate():
     answers = inquirer.prompt(questions)
     console.print("\n[bold cyan]Candidate Details:[/bold cyan]")
     insert_data(connection, "insert_candidate", answers)
-    contests_record_exists = select_data(connection, "check_if_contests_record_exists", answers)
-    if contests_record_exists[0]["is_exists"] == 0:
-        insert_data(connection, "insert_contests", answers)
+    contests_in_record_exists = select_data(connection, "check_if_contests_in_record_exists", {
+        "party_id": answers["party_id"],
+        "constituency_id": answers["constituency_id"]
+    })
+    if not contests_in_record_exists:
+        insert_data(connection, "insert_contests_in", answers)
     # table = Table(show_header=True, header_style="bold magenta")
     # table.add_column("Field")
     # table.add_column("Value")
@@ -278,8 +280,6 @@ def admin_flow():
             add_constituency()
         elif action == 'Add a new Admin to the DB':
             add_admin()
-        elif action == 'Cast your vote':
-            cast_vote()
         elif action == 'Exit to Main Menu':
             console.print("\n[bold green]Thanks for using the Electronic Voter Management System![/bold green]")
             break

@@ -5,7 +5,7 @@ QUERY_MAP = {
         "VALUES (%s, %s)"
     ),
     "insert_party": (
-        "INSERT INTO Party (name, symbol, party_leader) "
+        "INSERT INTO Party (name, symbol, leader) "
         "VALUES (%s, %s, %s)"
     ),
     "insert_voter": (
@@ -13,15 +13,15 @@ QUERY_MAP = {
         "VALUES (%s, %s, %s, %s, %s, %s)"
     ),
     "insert_admin": (
-        "INSERT INTO Admin (name, email, pwd, voter_id) "
-        "VALUES (%s, %s, %s, %s)"
+        "INSERT INTO Admin (email, pwd, voter_id) "
+        "VALUES (%s, %s, %s)"
     ),
     "insert_candidate": (
         "INSERT INTO Candidate (voter_id, party_id, constituency_id) "
         "VALUES (%s, %s, %s)"
     ),
-    "insert_contests": (
-        "INSERT INTO Contests (party_id, constituency_id) "
+    "insert_contests_in": (
+        "INSERT INTO ContestsIn (party_id, constituency_id) "
         "VALUES (%s, %s)"
     ),
     "insert_vote_and_mark_voted": (
@@ -32,7 +32,7 @@ QUERY_MAP = {
     "select_all_constituencies": (
         "SELECT * FROM Constituency;"
     ),
-    "select_all_parties": (
+    "show_all_parties": (
         "SELECT * FROM Party;"
     ),
     "find_constituency_id_from_voter_id": (
@@ -41,8 +41,8 @@ QUERY_MAP = {
     "check_if_voter_has_voted": (
         "SELECT has_voted FROM Voter WHERE voter_id = %s;"
     ),
-    "check_if_contests_record_exists": (
-        "SELECT 1 AS is_exists FROM Contests WHERE party_id = %s AND constituency_id = %s"
+    "check_if_contests_in_record_exists": (
+        "SELECT 1 AS is_exists FROM ContestsIn WHERE party_id = %s AND constituency_id = %s"
     ),
     
     # Candidate details for single constituency using constituency_id
@@ -60,12 +60,12 @@ QUERY_MAP = {
     # Party details
     "select_all_parties": (
         "SELECT p.party_id, p.name AS party_name, cons.name AS constituency_name "
-        "FROM Party p, Constituency cons, Contests c "
+        "FROM Party p, Constituency cons, ContestsIn c "
         "WHERE p.party_id = c.party_id AND cons.constituency_id = c.constituency_id;"
     ),
     # Admin details
     "select_all_admins": (
-        "SELECT name, email FROM Admin;"
+        "SELECT v.name, a.email FROM Admin a, Voter v WHERE a.voter_id = v.voter_id;"
     ),
     # Results for a single constituency using constituency_id
     "select_results_by_constituency_id": (
@@ -86,16 +86,16 @@ QUERY_MAP = {
 
 QUERY_PARAM_ORDER = {
     "insert_constituency": ["name", "district"],
-    "insert_party": ["name", "symbol", "party_leader"],
+    "insert_party": ["name", "symbol", "leader"],
     "insert_voter": ["aadhar", "name", "dob", "gender", "address", "constituency_id"],
-    "insert_admin": ["name", "email", "pwd", "voter_id"],
+    "insert_admin": ["email", "pwd", "voter_id"],
     "insert_candidate": ["voter_id", "party_id", "constituency_id"],
     "insert_vote": ["voter_id", "candidate_id", "constituency_id"],
-    "insert_contests": ["party_id", "constituency_id"],
+    "insert_contests_in": ["party_id", "constituency_id"],
 
     "find_constituency_id_from_voter_id": ["voter_id"],
     "check_if_voter_has_voted": ["voter_id"],
-    "check_if_contests_record_exists": ["party_id", "constituency_id"],
+    "check_if_contests_in_record_exists": ["party_id", "constituency_id"],
     
     "select_candidate_by_constituency_id": ["constituency_id"],
     "select_results_by_constituency_id": ["constituency_id"],
@@ -105,9 +105,8 @@ QUERY_PARAM_ORDER = {
 
 
 QUERY_HEADERS = {
-    # "get_candidate_by_constituency": ["Candidate ID", "Name", "Age", "Party ID", "Constituency ID"],
     "select_all_constituencies": ["constituency_id", "name", "district"],
-    "select_all_parties": ["party_id", "name", "symbol", "party_leader"],
+    "show_all_parties": ["party_id", "name", "symbol", "leader"],
     "select_candidate_by_constituency_id": ["candidate_id", "candidate_name", "party_name", "constituency_name"],
     "select_all_candidates": ["candidate_id", "candidate_name", "party_name", "constituency_name"],
     "select_all_parties": ["party_id", "party_name", "constituency_name"],
