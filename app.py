@@ -1,0 +1,296 @@
+import inquirer
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+from time import sleep
+from db import connect_to_db, select_data, insert_data, select_all_data, build_table_from_query_result
+
+console = Console()
+connection = connect_to_db()
+
+def login_menu():
+    questions = [
+        inquirer.List('role',
+                      message="Login as:",
+                      choices=['Admin', 'Voter', 'Exit'])
+    ]
+    answers = inquirer.prompt(questions)
+    return answers['role']
+
+def show_admin_menu():
+    questions = [
+        inquirer.List('action',
+                      message="Admin Menu - Select a functionality:",
+                      choices=[
+                          'Add a new Voter to the DB',
+                          'Add a new Party to the DB',
+                          'Add a new Candidate to the DB',
+                          'Add a new Constituency to the DB',
+                          'Cast your vote',
+                          'Exit to Main Menu'
+                      ])
+    ]
+    answers = inquirer.prompt(questions)
+    return answers['action']
+
+def show_user_menu():
+    questions = [
+        inquirer.List('action',
+                      message="Voter Menu - Select an option:",
+                      choices=[
+                          'Cast Vote',
+                          'See Results',
+                          'Candidate Information',
+                          'Party Presence',
+                          'Enquire Admin Details',
+                          'Logout to Main Menu'
+                      ])
+    ]
+    answers = inquirer.prompt(questions)
+    return answers['action']
+
+def add_admin():
+    console.print(Panel("[bold green]Add a New Admin[/bold green]"))
+    questions = [
+        inquirer.Text('name', message='Full name'),
+        inquirer.Text('email', message='Email'),
+        inquirer.List('pwd', message='Password'),
+        inquirer.Text('voter_id', message='Voter ID'),
+    ]
+    answers = inquirer.prompt(questions)
+    console.print("\n[bold cyan]Voter Information:[/bold cyan]")
+    insert_data(connection, "insert_admin", answers)
+    # table = Table(show_header=True, header_style="bold magenta")
+    # table.add_column("Field")
+    # table.add_column("Value")
+    # for k, v in answers.items():
+    #     table.add_row(k.capitalize(), v)
+    # console.print(table)
+    console.log(answers)
+
+def print_table(query_name, table_name):
+    data = select_all_data(connection, query_name)
+    table = build_table_from_query_result(data, query_name, table_name)
+    console.print(table)
+
+def add_voter():
+    console.print(Panel("[bold green]Add a New Voter[/bold green]"))
+    print_table("select_all_constituencies", "Constituencies")
+    questions = [
+        inquirer.Text('aadhar', message='Aadhar Number'),
+        inquirer.Text('name', message='Full name'),
+        inquirer.Text('dob', message='Date of Birth (YYYY-MM-DD)'),
+        inquirer.List('gender', message='Gender', choices=['M', 'F', 'O']),
+        inquirer.Text('address', message='Address'),
+        inquirer.Text('constituency_id', message='Enter Constituency id from the above table'),
+    ]
+    answers = inquirer.prompt(questions)
+    console.print("\n[bold cyan]Voter Information:[/bold cyan]")
+    insert_data(connection, "insert_voter", answers)
+    # table = Table(show_header=True, header_style="bold magenta")
+    # table.add_column("Field")
+    # table.add_column("Value")
+    # for k, v in answers.items():
+    #     table.add_row(k.capitalize(), v)
+    # console.print(table)
+    console.log(answers)
+
+def add_party():
+    console.print(Panel("[bold green]Add a New Party[/bold green]"))
+    questions = [
+        inquirer.Text('name', message='Party name'),
+        inquirer.Text('symbol', message='Party symbol'),
+        inquirer.Text('party_leader', message='Party leader'),
+    ]
+    answers = inquirer.prompt(questions)
+    console.print("\n[bold cyan]Party Details:[/bold cyan]")
+    insert_data(connection, "insert_party", answers)
+    # table = Table(show_header=True, header_style="bold magenta")
+    # table.add_column("Field")
+    # table.add_column("Value")
+    # for k, v in answers.items():
+    #     table.add_row(k.capitalize(), v)
+    # console.print(table)
+    console.log(answers)
+
+def add_candidate():
+    console.print(Panel("[bold green]Add a New Candidate[/bold green]"))
+    print_table("select_all_constituencies", "Constituencies")
+    print_table("select_all_parties", "Parties")
+    questions = [
+        inquirer.Text('voter_id', message='Voter ID'),
+        inquirer.Text('party_id', message='Enter Party id from the above table'),
+        inquirer.Text('constituency_id', message='Enter Constituency id from the above table'),
+    ]
+    answers = inquirer.prompt(questions)
+    console.print("\n[bold cyan]Candidate Details:[/bold cyan]")
+    insert_data(connection, "insert_candidate", answers)
+    # table = Table(show_header=True, header_style="bold magenta")
+    # table.add_column("Field")
+    # table.add_column("Value")
+    # for k, v in answers.items():
+    #     table.add_row(k.capitalize(), v)
+    # console.print(table)
+    console.log(answers)
+
+def add_constituency():
+    console.print(Panel("[bold green]Add a New Constituency[/bold green]"))
+    questions = [
+        inquirer.Text('name', message='Constituency name'),
+        inquirer.Text('district', message='District'),
+    ]
+    answers = inquirer.prompt(questions)
+    console.print("\n[bold cyan]Constituency Info:[/bold cyan]")
+    insert_data(connection, "insert_constituency", answers)
+    # table = Table(show_header=True, header_style="bold magenta")
+    # table.add_column("Field")
+    # table.add_column("Value")
+    # for k, v in answers.items():
+    #     table.add_row(k.capitalize(), v)
+    # console.print(table)
+    console.log(answers)
+
+def cast_vote():
+    console.print(Panel("[bold green]Cast Your Vote[/bold green]\n"
+                       "- See candidates belonging to your constituency (candidate name, party symbol, shortname)."))
+    questions = [
+        inquirer.Text('voter_id', message='Your Voter ID'),
+        inquirer.Text('constituency', message='Your Constituency'),
+        inquirer.Text('party', message='Party to vote for'),
+    ]
+    answers = inquirer.prompt(questions)
+    console.print("\n[bold cyan]Vote Recorded:[/bold cyan]")
+    table = Table(show_header=True, header_style="bold magenta")
+    table.add_column("Field")
+    table.add_column("Value")
+    for k, v in answers.items():
+        table.add_row(k.capitalize(), v)
+    console.print(table)
+
+def show_results(voter_id, single_result):
+    constituency_data = select_data(connection, "find_constituency_id_from_voter_id", {"voter_id": voter_id})[0]
+    table = None
+    if single_result:
+        console.print("[cyan]Showing results for your constituency...[/cyan]")
+        data = select_data(connection, "select_results_by_constituency_id", constituency_data)
+        table = build_table_from_query_result(data, "select_results_by_constituency_id", "Results in your constituency")
+    else:
+        console.print("[cyan]Showing all results...[/cyan]")
+        data = select_all_data(connection, "select_all_results")
+        table = build_table_from_query_result(data, "select_all_results", "All Results")
+    console.print(table)
+
+def show_candidate_info(voter_id, single_result):
+    constituency_data = select_data(connection, "find_constituency_id_from_voter_id", {"voter_id": voter_id})[0]
+    table = None
+    if single_result:
+        console.print("[cyan]Showing candidates for your constituency...[/cyan]")
+        data = select_data(connection, "select_candidate_by_constituency_id", constituency_data)
+        table = build_table_from_query_result(data, "select_candidate_by_constituency_id", "Candidates contesting in your constituency")
+    else:
+        console.print("[cyan]Showing all candidates...[/cyan]")
+        data = select_all_data(connection, "select_all_candidates")
+        table = build_table_from_query_result(data, "select_all_candidates", "Candidates")
+    console.print(table)
+
+def show_party_info():
+    console.print(Panel(
+        "[bold cyan]Party Presence[/bold cyan]\n"
+        "- See all parties and their respective constituencies they are contesting in."
+    ))
+    data = select_all_data(connection, "select_all_parties")
+    table = build_table_from_query_result(data, "select_all_parties", "Parties")
+    console.print(table)
+
+def show_admin_info():
+    console.print(Panel(
+        "[bold cyan]Admin Details[/bold cyan]\n"
+        "- See admin details."
+    ))
+    data = select_all_data(connection, "select_all_admins")
+    table = build_table_from_query_result(data, "select_all_admins", "Admins")
+    console.print(table)
+
+def user_flow():
+    console.print(Panel("[bold yellow]User Login[/bold yellow]"))
+    voter_id = inquirer.text(message="Enter Voter ID: ")
+    console.print(f"[green]Welcome, Voter {voter_id}![/green]")
+    while True:
+        action = show_user_menu()
+        if action == 'Cast Vote':
+            cast_vote()
+        elif action == 'See Results':
+            sub_questions = [
+                inquirer.List('result_option',
+                              message="See Results for:",
+                              choices=[
+                                  "Your Constituency",
+                                  "All Candidates"
+                              ])
+            ]
+            sub_answer = inquirer.prompt(sub_questions)
+            if sub_answer['result_option'] == "Your Constituency":
+                show_results(voter_id, True)
+            elif sub_answer['result_option'] == "All Candidates":
+                show_results(voter_id, False)
+        elif action == 'Candidate Information':
+            sub_questions = [
+                inquirer.List('candidate_option',
+                              message="Candidate Information for:",
+                              choices=[
+                                  "Your Constituency",
+                                  "All Candidates"
+                              ])
+            ]
+            sub_answer = inquirer.prompt(sub_questions)
+            if sub_answer['candidate_option'] == "Your Constituency":
+                show_candidate_info(voter_id, True)
+            elif sub_answer['candidate_option'] == "All Candidates":
+                show_candidate_info(voter_id, False)
+        elif action == 'Party Presence':
+            show_party_info()
+        elif action == 'Enquire Admin Details':
+            show_admin_info()
+        elif action == 'Logout to Main Menu':
+            console.print("[green]Logged out![/green]")
+            break
+        sleep(1)
+        console.print("\n[bold blue]Returning to user menu...[/bold blue]\n")
+
+def admin_flow():
+    while True:
+        action = show_admin_menu()
+        if action == 'Add a new Voter to the DB':
+            add_voter()
+        elif action == 'Add a new Party to the DB':
+            add_party()
+        elif action == 'Add a new Candidate to the DB':
+            add_candidate()
+        elif action == 'Add a new Constituency to the DB':
+            add_constituency()
+        elif action == 'Add a new Admin to the DB':
+            add_admin()
+        elif action == 'Cast your vote':
+            cast_vote()
+        elif action == 'Exit to Main Menu':
+            console.print("\n[bold green]Thanks for using the Electronic Voter Management System![/bold green]")
+            break
+        sleep(1)
+        console.print("\n[bold blue]Returning to admin menu...[/bold blue]\n")
+
+def main():
+    console.rule("[bold yellow]Electronic Voting System[/bold yellow]")
+    while True:
+        role = login_menu()
+        if role == 'Admin':
+            console.print(Panel("[bold green]Logged in as Admin[/bold green]"))
+            admin_flow()
+        elif role == 'Voter':
+            user_flow()
+        elif role == 'Exit':
+            console.print("[green]Thanks for using the Electronic Voter Management System![/green]")
+            break
+        sleep(1)
+
+if __name__ == "__main__":
+    main()

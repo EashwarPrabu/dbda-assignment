@@ -1,14 +1,14 @@
 -- CREATE TABLE QUERIES --
 -- 1. CONSTITUENCY Table --
 CREATE TABLE Constituency (
-    constituency_id INT PRIMARY KEY,
+    constituency_id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
     district VARCHAR(100) NOT NULL
 );
 
 -- 2. PARTY Table --
 CREATE TABLE Party (
-    party_id INT PRIMARY KEY,
+    party_id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
     symbol VARCHAR(100),
     party_leader VARCHAR(100) NOT NULL
@@ -16,20 +16,19 @@ CREATE TABLE Party (
 
 -- 3. VOTER Table --
 CREATE TABLE Voter (
-    voter_id INT PRIMARY KEY,
+    voter_id INT PRIMARY KEY AUTO_INCREMENT,
     aadhar VARCHAR(20) UNIQUE NOT NULL,
     name VARCHAR(100) NOT NULL,
     dob DATE NOT NULL,
     gender ENUM('M', 'F', 'O') NOT NULL,
     address VARCHAR(255) NOT NULL,
     has_voted BOOLEAN DEFAULT FALSE,
-    constituency_id INT,
-    candidate_id INT
+    constituency_id INT
 );
 
 -- 4. ADMIN Table --
 CREATE TABLE Admin (
-    admin_id INT PRIMARY KEY,
+    admin_id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     pwd VARCHAR(255) NOT NULL,
@@ -39,11 +38,10 @@ CREATE TABLE Admin (
 
 -- 5. CANDIDATE Table --
 CREATE TABLE Candidate (
-    candidate_id INT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    candidate_id INT PRIMARY KEY AUTO_INCREMENT,
     voter_id INT UNIQUE, 
     party_id INT, 
-    constituency_id INT UNIQUE,
+    constituency_id INT,
     FOREIGN KEY (voter_id) REFERENCES Voter(voter_id),
     FOREIGN KEY (party_id) REFERENCES Party(party_id),
     FOREIGN KEY (constituency_id) REFERENCES Constituency(constituency_id)
@@ -73,23 +71,23 @@ ALTER TABLE Voter ADD CONSTRAINT fk_voter_constituency FOREIGN KEY (constituency
 
 -- INSERT QUERIES --
 -- 1. CONSTITUENCY --
-INSERT INTO Constituency (constituency_id, name, district) VALUES (101, 'North District', 'Springfield');
+INSERT INTO Constituency (name, district) VALUES ('North District', 'Springfield');
 
 -- 2. PARTY --
-INSERT INTO Party (party_id, name, symbol, party_leader) VALUES (201, 'Progressive Party', 'PP', 'Adam Smith');
+INSERT INTO Party (name, symbol, party_leader) VALUES ('Progressive Party', 'PP', 'Adam Smith');
 
 -- 3. VOTER --
-INSERT INTO Voter (voter_id, aadhar, name, dob, gender, address, has_voted, constituency_id, candidate_id)
-VALUES (401, '1234-5678-9012', 'John Doe', '1990-05-15', 'M', '123 Elm Street', FALSE, 101, NULL);
+INSERT INTO Voter (aadhar, name, dob, gender, address, constituency_id)
+VALUES ('1234-5678-9012', 'John Doe', '1990-05-15', 'M', '123 Elm Street', 1);
 
 -- 4. ADMIN --
-INSERT INTO Admin (admin_id, name, email, pwd, voter_id) VALUES (501, 'Admin One', 'admin1@example.com', 'password123', 401);
+INSERT INTO Admin (name, email, pwd, voter_id) VALUES ('Admin One', 'admin1@example.com', 'password123', 1);
 
 -- 5. CANDIDATE --
-INSERT INTO Candidate (candidate_id, name, voter_id, party_id, constituency_id) VALUES (601, 'Candidate A', 401, 201, 101);
+INSERT INTO Candidate (voter_id, party_id, constituency_id) VALUES (1, 1, 1);
 
 -- 6. VOTE --
-INSERT INTO Vote (voter_id, candidate_id, constituency_id) VALUES (401, 601, 101);
+INSERT INTO Vote (voter_id, candidate_id, constituency_id) VALUES (1, 1, 1);
 
 -- 7. CONTESTS --
-INSERT INTO Contests (party_id, constituency_id) VALUES (201, 101);
+INSERT INTO Contests (party_id, constituency_id) VALUES (1, 1);
