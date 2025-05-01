@@ -125,6 +125,9 @@ def add_candidate():
     answers = inquirer.prompt(questions)
     console.print("\n[bold cyan]Candidate Details:[/bold cyan]")
     insert_data(connection, "insert_candidate", answers)
+    contests_record_exists = select_data(connection, "check_if_contests_record_exists", answers)
+    if contests_record_exists[0]["is_exists"] == 0:
+        insert_data(connection, "insert_contests", answers)
     # table = Table(show_header=True, header_style="bold magenta")
     # table.add_column("Field")
     # table.add_column("Value")
@@ -150,22 +153,27 @@ def add_constituency():
     # console.print(table)
     console.log(answers)
 
-def cast_vote():
+def cast_vote(voter_id):
+    has_voted = select_data(connection, "check_if_voter_has_voted", {"voter_id": voter_id})[0]["has_voted"]
+    if has_voted:
+        console.print("[red]You have already voted![/red]")
+        return
     console.print(Panel("[bold green]Cast Your Vote[/bold green]\n"
-                       "- See candidates belonging to your constituency (candidate name, party symbol, shortname)."))
+                       "- Here are the list of candidates contesting in your constituency."))
+    constituency_data = select_data(connection, "find_constituency_id_from_voter_id", {"voter_id": voter_id})[0]
+    data = select_data(connection, "select_candidate_by_constituency_id", constituency_data)
+    candidate_table = build_table_from_query_result(data, "select_candidate_by_constituency_id", "Candidates contesting in your constituency")
+    console.print(candidate_table)
     questions = [
-        inquirer.Text('voter_id', message='Your Voter ID'),
-        inquirer.Text('constituency', message='Your Constituency'),
-        inquirer.Text('party', message='Party to vote for'),
+        inquirer.Text('candidate_id', message='Enter the candidate ID you want to vote for'),
     ]
     answers = inquirer.prompt(questions)
-    console.print("\n[bold cyan]Vote Recorded:[/bold cyan]")
-    table = Table(show_header=True, header_style="bold magenta")
-    table.add_column("Field")
-    table.add_column("Value")
-    for k, v in answers.items():
-        table.add_row(k.capitalize(), v)
-    console.print(table)
+    insert_data(connection, "insert_vote_and_mark_voted", {
+        "voter_id": voter_id,
+        "candidate_id": answers['candidate_id'],
+        "constituency_id": constituency_data["constituency_id"]
+    })
+    console.print("\n[bold cyan]Your vote has been casted successfully[/bold cyan]")
 
 def show_results(voter_id, single_result):
     constituency_data = select_data(connection, "find_constituency_id_from_voter_id", {"voter_id": voter_id})[0]
@@ -218,7 +226,7 @@ def user_flow():
     while True:
         action = show_user_menu()
         if action == 'Cast Vote':
-            cast_vote()
+            cast_vote(voter_id)
         elif action == 'See Results':
             sub_questions = [
                 inquirer.List('result_option',

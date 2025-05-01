@@ -91,3 +91,21 @@ INSERT INTO Vote (voter_id, candidate_id, constituency_id) VALUES (1, 1, 1);
 
 -- 7. CONTESTS --
 INSERT INTO Contests (party_id, constituency_id) VALUES (1, 1);
+
+-- STORED PROCEDURE (Insert Vote record and update has_voted property in Voter table) --
+DELIMITER $$
+CREATE PROCEDURE insert_vote_and_mark_voted(
+    IN p_voter_id INT,
+    IN p_candidate_id INT,
+    IN p_constituency_id INT
+)
+BEGIN
+    # --- Insert Vote record ---
+    INSERT INTO Vote (voter_id, candidate_id, constituency_id) VALUES (p_voter_id, p_candidate_id, p_constituency_id);
+
+    # --- Update has_voted field in Voter table ---
+    UPDATE Voter
+    SET has_voted = TRUE
+    WHERE voter_id = p_voter_id;
+END$$
+DELIMITER ;

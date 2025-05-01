@@ -20,13 +20,12 @@ QUERY_MAP = {
         "INSERT INTO Candidate (voter_id, party_id, constituency_id) "
         "VALUES (%s, %s, %s)"
     ),
-    "insert_vote": (
-        "INSERT INTO Vote (voter_id, candidate_id, constituency_id) "
-        "VALUES (%s, %s, %s)"
-    ),
     "insert_contests": (
         "INSERT INTO Contests (party_id, constituency_id) "
         "VALUES (%s, %s)"
+    ),
+    "insert_vote_and_mark_voted": (
+        "CALL insert_vote_and_mark_voted(%s, %s, %s)"
     ),
     
     # Helper queries
@@ -38,6 +37,12 @@ QUERY_MAP = {
     ),
     "find_constituency_id_from_voter_id": (
         "SELECT constituency_id FROM Voter WHERE voter_id = %s;"
+    ),
+    "check_if_voter_has_voted": (
+        "SELECT has_voted FROM Voter WHERE voter_id = %s;"
+    ),
+    "check_if_contests_record_exists": (
+        "SELECT 1 AS is_exists FROM Contests WHERE party_id = %s AND constituency_id = %s"
     ),
     
     # Candidate details for single constituency using constituency_id
@@ -87,9 +92,15 @@ QUERY_PARAM_ORDER = {
     "insert_candidate": ["voter_id", "party_id", "constituency_id"],
     "insert_vote": ["voter_id", "candidate_id", "constituency_id"],
     "insert_contests": ["party_id", "constituency_id"],
+
     "find_constituency_id_from_voter_id": ["voter_id"],
+    "check_if_voter_has_voted": ["voter_id"],
+    "check_if_contests_record_exists": ["party_id", "constituency_id"],
+    
     "select_candidate_by_constituency_id": ["constituency_id"],
     "select_results_by_constituency_id": ["constituency_id"],
+
+    "insert_vote_and_mark_voted": ["voter_id", "candidate_id", "constituency_id"],
 }
 
 
