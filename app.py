@@ -59,16 +59,15 @@ def add_admin():
     answers = inquirer.prompt(questions)
     console.print("\n[bold cyan]Voter Information:[/bold cyan]")
     insert_data(connection, "insert_admin", answers)
-    # table = Table(show_header=True, header_style="bold magenta")
-    # table.add_column("Field")
-    # table.add_column("Value")
-    # for k, v in answers.items():
-    #     table.add_row(k.capitalize(), v)
-    # console.print(table)
+    print_table("show_inserted_admin", "Inserted Admin Details", {"email": answers["email"]})
     console.log(answers)
 
-def print_table(query_name, table_name):
-    data = select_all_data(connection, query_name)
+def print_table(query_name, table_name, params=None):
+    data = None
+    if params:
+        data = select_data(connection, query_name, params)
+    else:
+        data = select_all_data(connection, query_name)
     table = build_table_from_query_result(data, query_name, table_name)
     console.print(table)
 
@@ -86,12 +85,7 @@ def add_voter():
     answers = inquirer.prompt(questions)
     console.print("\n[bold cyan]Voter Information:[/bold cyan]")
     insert_data(connection, "insert_voter", answers)
-    # table = Table(show_header=True, header_style="bold magenta")
-    # table.add_column("Field")
-    # table.add_column("Value")
-    # for k, v in answers.items():
-    #     table.add_row(k.capitalize(), v)
-    # console.print(table)
+    print_table("show_inserted_voter", "Inserted Voter Details", {"aadhar": answers["aadhar"]})
     console.log(answers)
 
 def add_party():
@@ -104,12 +98,7 @@ def add_party():
     answers = inquirer.prompt(questions)
     console.print("\n[bold cyan]Party Details:[/bold cyan]")
     insert_data(connection, "insert_party", answers)
-    # table = Table(show_header=True, header_style="bold magenta")
-    # table.add_column("Field")
-    # table.add_column("Value")
-    # for k, v in answers.items():
-    #     table.add_row(k.capitalize(), v)
-    # console.print(table)
+    print_table("show_inserted_party", "Inserted Party Details", answers)
     console.log(answers)
 
 def add_candidate():
@@ -124,18 +113,17 @@ def add_candidate():
     answers = inquirer.prompt(questions)
     console.print("\n[bold cyan]Candidate Details:[/bold cyan]")
     insert_data(connection, "insert_candidate", answers)
+    print_table("show_inserted_candidate", "Inserted Candidate Details", {"voter_id": answers["voter_id"]})
     contests_in_record_exists = select_data(connection, "check_if_contests_in_record_exists", {
         "party_id": answers["party_id"],
         "constituency_id": answers["constituency_id"]
     })
     if not contests_in_record_exists:
         insert_data(connection, "insert_contests_in", answers)
-    # table = Table(show_header=True, header_style="bold magenta")
-    # table.add_column("Field")
-    # table.add_column("Value")
-    # for k, v in answers.items():
-    #     table.add_row(k.capitalize(), v)
-    # console.print(table)
+        console.print("\n[bold cyan]ContestsIn Record created[/bold cyan]")
+        print_table("show_inserted_contests_in", "Inserted ContestsIn Details", {"party_id": answers["party_id"], "constituency_id": answers["constituency_id"]})
+    else:
+        console.print("\n[bold green]ContestsIn record already exists![/bold green]")
     console.log(answers)
 
 def add_constituency():
@@ -147,12 +135,7 @@ def add_constituency():
     answers = inquirer.prompt(questions)
     console.print("\n[bold cyan]Constituency Info:[/bold cyan]")
     insert_data(connection, "insert_constituency", answers)
-    # table = Table(show_header=True, header_style="bold magenta")
-    # table.add_column("Field")
-    # table.add_column("Value")
-    # for k, v in answers.items():
-    #     table.add_row(k.capitalize(), v)
-    # console.print(table)
+    print_table("show_inserted_constituency", "Inserted Constituency Details", answers)
     console.log(answers)
 
 def cast_vote(voter_id):

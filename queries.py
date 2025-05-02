@@ -24,8 +24,29 @@ QUERY_MAP = {
         "INSERT INTO ContestsIn (party_id, constituency_id) "
         "VALUES (%s, %s)"
     ),
+
+    # Stored procedure to insert vote and mark voter as voted
     "insert_vote_and_mark_voted": (
         "CALL insert_vote_and_mark_voted(%s, %s, %s)"
+    ),
+
+    "show_inserted_constituency": (
+        "SELECT constituency_id, name, district FROM Constituency WHERE name = %s AND district = %s"
+    ),
+    "show_inserted_party": (
+        "SELECT party_id, name, symbol, leader FROM Party WHERE name = %s AND symbol = %s AND leader = %s"
+    ),
+    "show_inserted_voter": (
+        "SELECT voter_id, aadhar, name, dob, gender, address, has_voted, constituency_id FROM Voter WHERE aadhar = %s"
+    ),
+    "show_inserted_admin": (
+        "SELECT admin_id, email, voter_id FROM Admin WHERE email = %s"
+    ),
+    "show_inserted_candidate": (
+        "SELECT candidate_id, voter_id, party_id, constituency_id FROM Candidate WHERE voter_id = %s"
+    ),
+    "show_inserted_contests_in": (
+        "SELECT party_id, constituency_id FROM ContestsIn WHERE party_id = %s AND constituency_id = %s"
     ),
     
     # Helper queries
@@ -36,10 +57,10 @@ QUERY_MAP = {
         "SELECT * FROM Party;"
     ),
     "find_constituency_id_from_voter_id": (
-        "SELECT constituency_id FROM Voter WHERE voter_id = %s;"
+        "SELECT constituency_id FROM Voter WHERE voter_id = %s"
     ),
     "check_if_voter_has_voted": (
-        "SELECT has_voted FROM Voter WHERE voter_id = %s;"
+        "SELECT has_voted FROM Voter WHERE voter_id = %s"
     ),
     "check_if_contests_in_record_exists": (
         "SELECT 1 AS is_exists FROM ContestsIn WHERE party_id = %s AND constituency_id = %s"
@@ -49,7 +70,7 @@ QUERY_MAP = {
     "select_candidate_by_constituency_id": (
         "SELECT c.candidate_id, v.name AS candidate_name, p.name AS party_name, cons.name AS constituency_name "
         "FROM Candidate c, Voter v, Party p, Constituency cons "
-        "WHERE v.voter_id = c.voter_id AND c.party_id = p.party_id AND c.constituency_id = cons.constituency_id AND c.constituency_id = %s;"
+        "WHERE v.voter_id = c.voter_id AND c.party_id = p.party_id AND c.constituency_id = cons.constituency_id AND c.constituency_id = %s"
     ),
     # Candidate details for all constituencies
     "select_all_candidates": (
@@ -61,11 +82,11 @@ QUERY_MAP = {
     "select_all_parties": (
         "SELECT p.party_id, p.name AS party_name, cons.name AS constituency_name "
         "FROM Party p, Constituency cons, ContestsIn c "
-        "WHERE p.party_id = c.party_id AND cons.constituency_id = c.constituency_id;"
+        "WHERE p.party_id = c.party_id AND cons.constituency_id = c.constituency_id"
     ),
     # Admin details
     "select_all_admins": (
-        "SELECT v.name, a.email FROM Admin a, Voter v WHERE a.voter_id = v.voter_id;"
+        "SELECT v.name, a.email FROM Admin a, Voter v WHERE a.voter_id = v.voter_id"
     ),
     # Results for a single constituency using constituency_id
     "select_results_by_constituency_id": (
@@ -73,7 +94,7 @@ QUERY_MAP = {
         "FROM vote v, candidate c, voter vtr, party p "
         "WHERE v.candidate_id = c.candidate_id AND c.voter_id = vtr.voter_id AND c.party_id = p.party_id AND v.constituency_id = %s "
         "GROUP BY c.candidate_id, vtr.name, p.name "
-        "ORDER BY vote_count DESC;"
+        "ORDER BY vote_count DESC"
     ),
     # Results for all constituencies
     "select_all_results": (        
@@ -81,7 +102,8 @@ QUERY_MAP = {
         "FROM vote v, candidate c, voter vtr, party p "
         "WHERE v.candidate_id = c.candidate_id AND c.voter_id = vtr.voter_id AND c.party_id = p.party_id "
         "GROUP BY c.candidate_id, vtr.name, p.name "
-        "ORDER BY vote_count DESC;")
+        "ORDER BY vote_count DESC"
+    )
 }
 
 QUERY_PARAM_ORDER = {
@@ -92,6 +114,13 @@ QUERY_PARAM_ORDER = {
     "insert_candidate": ["voter_id", "party_id", "constituency_id"],
     "insert_vote": ["voter_id", "candidate_id", "constituency_id"],
     "insert_contests_in": ["party_id", "constituency_id"],
+
+    "show_inserted_constituency": ["name", "district"],
+    "show_inserted_party": ["name", "symbol", "leader"],
+    "show_inserted_voter": ["aadhar"],
+    "show_inserted_admin": ["email"],
+    "show_inserted_candidate": ["voter_id"],
+    "show_inserted_contests_in": ["party_id", "constituency_id"],
 
     "find_constituency_id_from_voter_id": ["voter_id"],
     "check_if_voter_has_voted": ["voter_id"],
@@ -112,5 +141,12 @@ QUERY_HEADERS = {
     "select_all_parties": ["party_id", "party_name", "constituency_name"],
     "select_all_admins": ["name", "email"],
     "select_results_by_constituency_id": ["candidate_id", "candidate_name", "party_name", "vote_count"],
-    "select_all_results": ["candidate_id", "candidate_name", "party_name", "vote_count"]
+    "select_all_results": ["candidate_id", "candidate_name", "party_name", "vote_count"],
+    "show_inserted_constituency": ["constituency_id", "name", "district"],
+    "show_inserted_party": ["party_id", "name", "symbol", "leader"],
+    "show_inserted_voter": ["voter_id", "aadhar", "name", "dob", "gender", "address", "has_voted", "constituency_id"],
+    "show_inserted_admin": ["admin_id", "email", "voter_id"],
+    "show_inserted_candidate": ["candidate_id", "voter_id", "party_id", "constituency_id"],
+    "show_inserted_contests_in": ["party_id", "constituency_id"],
+
 }
