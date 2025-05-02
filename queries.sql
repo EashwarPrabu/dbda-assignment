@@ -79,16 +79,13 @@ INSERT INTO Party (name, symbol, leader) VALUES ('Progressive Party', 'PP', 'Ada
 INSERT INTO Voter (aadhar, name, dob, gender, address, constituency_id)
 VALUES ('1234-5678-9012', 'John Doe', '1990-05-15', 'M', '123 Elm Street', 1);
 
--- 4. ADMIN --
-INSERT INTO Admin (email, pwd, voter_id) VALUES ('admin1@example.com', 'password123', 1);
-
--- 5. CANDIDATE --
+-- 4. CANDIDATE --
 INSERT INTO Candidate (voter_id, party_id, constituency_id) VALUES (1, 1, 1);
 
--- 6. VOTE --
+-- 5. VOTE --
 INSERT INTO Vote (voter_id, candidate_id, constituency_id) VALUES (1, 1, 1);
 
--- 7. CONTESTSIN --
+-- 6. CONTESTSIN --
 INSERT INTO ContestsIn (party_id, constituency_id) VALUES (1, 1);
 
 -- STORED PROCEDURE (Insert Vote record and update has_voted property in Voter table) --

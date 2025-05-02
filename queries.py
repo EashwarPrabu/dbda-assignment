@@ -1,4 +1,31 @@
 QUERY_MAP = {
+    "create_constituency": (
+        "CREATE TABLE IF NOT EXISTS Constituency (constituency_id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(100) NOT NULL, district VARCHAR(100) NOT NULL)"
+    ),
+    "create_party": (
+        "CREATE TABLE IF NOT EXISTS Party (party_id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(100) NOT NULL, symbol VARCHAR(100), leader VARCHAR(100) NOT NULL)"
+    ),
+    "create_voter": (
+        "CREATE TABLE IF NOT EXISTS Voter (voter_id INT PRIMARY KEY AUTO_INCREMENT, aadhar VARCHAR(20) UNIQUE NOT NULL, name VARCHAR(100) NOT NULL, dob DATE NOT NULL, gender ENUM('M', 'F', 'O') NOT NULL, address VARCHAR(255) NOT NULL, has_voted BOOLEAN DEFAULT FALSE, constituency_id INT)"
+    ),
+    "create_admin": (
+        "CREATE TABLE IF NOT EXISTS Admin (admin_id INT PRIMARY KEY AUTO_INCREMENT, email VARCHAR(100) UNIQUE NOT NULL, pwd VARCHAR(255) NOT NULL, voter_id INT UNIQUE, FOREIGN KEY (voter_id) REFERENCES Voter(voter_id))"
+    ),
+    "create_candidate": (
+        "CREATE TABLE IF NOT EXISTS Candidate (candidate_id INT PRIMARY KEY AUTO_INCREMENT, voter_id INT UNIQUE, party_id INT, constituency_id INT, FOREIGN KEY (voter_id) REFERENCES Voter(voter_id), FOREIGN KEY (party_id) REFERENCES Party(party_id), FOREIGN KEY (constituency_id) REFERENCES Constituency(constituency_id))"
+    ),
+    "create_vote": (
+        "CREATE TABLE IF NOT EXISTS Vote (voter_id INT PRIMARY KEY, candidate_id INT NOT NULL, constituency_id INT NOT NULL, FOREIGN KEY (voter_id) REFERENCES Voter(voter_id), FOREIGN KEY (candidate_id) REFERENCES Candidate(candidate_id), FOREIGN KEY (constituency_id) REFERENCES Constituency(constituency_id))"
+    ),
+    "create_contests_in": (
+        "CREATE TABLE IF NOT EXISTS ContestsIn (party_id INT, constituency_id INT, PRIMARY KEY (party_id, constituency_id), FOREIGN KEY (party_id) REFERENCES Party(party_id), FOREIGN KEY (constituency_id) REFERENCES Constituency(constituency_id))"
+    ),
+    "check_if_voter_fk_constraint_exists": (
+        "SELECT CONSTRAINT_NAME FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'Voter' AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = 'fk_voter_constituency'"
+    ),
+    "add_voter_fk_constraint": (
+        "ALTER TABLE Voter ADD CONSTRAINT fk_voter_constituency FOREIGN KEY (constituency_id) REFERENCES Constituency(constituency_id)"
+    ),
     # Insert queries
     "insert_constituency": (
         "INSERT INTO Constituency (name, district) "
@@ -65,6 +92,9 @@ QUERY_MAP = {
     "check_if_contests_in_record_exists": (
         "SELECT 1 AS is_exists FROM ContestsIn WHERE party_id = %s AND constituency_id = %s"
     ),
+    "find_admin_by_id": (
+        "SELECT admin_id, pwd FROM Admin WHERE admin_id = %s"
+    ),
     
     # Candidate details for single constituency using constituency_id
     "select_candidate_by_constituency_id": (
@@ -125,6 +155,7 @@ QUERY_PARAM_ORDER = {
     "find_constituency_id_from_voter_id": ["voter_id"],
     "check_if_voter_has_voted": ["voter_id"],
     "check_if_contests_in_record_exists": ["party_id", "constituency_id"],
+    "find_admin_by_id": ["admin_id"],
     
     "select_candidate_by_constituency_id": ["constituency_id"],
     "select_results_by_constituency_id": ["constituency_id"],

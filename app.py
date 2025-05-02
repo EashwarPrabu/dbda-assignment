@@ -1,17 +1,23 @@
 import inquirer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
 from time import sleep
-from db import connect_to_db, select_data, insert_data, select_all_data, build_table_from_query_result
+import bcrypt
+from db import connect_to_db, select_data, insert_data, select_all_data, build_table_from_query_result, create_table, check_and_add_foreign_key_constraint_exist
 
 console = Console()
 connection = connect_to_db()
 
+def init():
+    tables = ["create_constituency", "create_party", "create_voter", "create_admin", "create_candidate", "create_contests_in"]
+    for table in tables:
+        create_table(connection, table)
+    check_and_add_foreign_key_constraint_exist(connection, "check_if_voter_fk_constraint_exists", "add_voter_fk_constraint")
+
 def login_menu():
     questions = [
         inquirer.List('role',
-                      message="Login as:",
+                      message="Login as",
                       choices=['Admin', 'Voter', 'Exit'])
     ]
     answers = inquirer.prompt(questions)
@@ -20,7 +26,7 @@ def login_menu():
 def show_admin_menu():
     questions = [
         inquirer.List('action',
-                      message="Admin Menu - Select a functionality:",
+                      message="Admin Menu - Select a functionality",
                       choices=[
                           'Add a new Voter to the DB',
                           'Add a new Party to the DB',
@@ -36,7 +42,7 @@ def show_admin_menu():
 def show_user_menu():
     questions = [
         inquirer.List('action',
-                      message="Voter Menu - Select an option:",
+                      message="Voter Menu - Select an option",
                       choices=[
                           'Cast Vote',
                           'See Results',
@@ -57,10 +63,24 @@ def add_admin():
         inquirer.Text('voter_id', message='Voter ID'),
     ]
     answers = inquirer.prompt(questions)
-    console.print("\n[bold cyan]Voter Information:[/bold cyan]")
+    answers['pwd'] = bcrypt.hashpw(answers['pwd'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    console.print("\n[bold cyan]Voter Information[/bold cyan]")
     insert_data(connection, "insert_admin", answers)
     print_table("show_inserted_admin", "Inserted Admin Details", {"email": answers["email"]})
     console.log(answers)
+
+def authenticate_admin(admin_id, admin_pwd):
+    admin = select_data(connection, "find_admin_by_id", {"admin_id": admin_id})
+    if admin:
+        stored_hashed_pwd = admin[0]['pwd'].encode('utf-8')
+        if bcrypt.checkpw(admin_pwd.encode('utf-8'), stored_hashed_pwd):
+            console.print("[green]Authentication successful![/green]\n")
+            return True
+        else:
+            console.print("[red]Authentication failed! Incorrect password.[/red]\n")
+            return False
+    else:
+        console.print("[red]Authentication failed! Admin not found.[/red]\n")
 
 def print_table(query_name, table_name, params=None):
     data = None
@@ -83,7 +103,7 @@ def add_voter():
         inquirer.Text('constituency_id', message='Enter Constituency id from the above table'),
     ]
     answers = inquirer.prompt(questions)
-    console.print("\n[bold cyan]Voter Information:[/bold cyan]")
+    console.print("\n[bold cyan]Voter Information[/bold cyan]")
     insert_data(connection, "insert_voter", answers)
     print_table("show_inserted_voter", "Inserted Voter Details", {"aadhar": answers["aadhar"]})
     console.log(answers)
@@ -96,7 +116,7 @@ def add_party():
         inquirer.Text('leader', message='Party leader'),
     ]
     answers = inquirer.prompt(questions)
-    console.print("\n[bold cyan]Party Details:[/bold cyan]")
+    console.print("\n[bold cyan]Party Details[/bold cyan]")
     insert_data(connection, "insert_party", answers)
     print_table("show_inserted_party", "Inserted Party Details", answers)
     console.log(answers)
@@ -111,7 +131,7 @@ def add_candidate():
         inquirer.Text('constituency_id', message='Enter Constituency id from the above table'),
     ]
     answers = inquirer.prompt(questions)
-    console.print("\n[bold cyan]Candidate Details:[/bold cyan]")
+    console.print("\n[bold cyan]Candidate Details[/bold cyan]")
     insert_data(connection, "insert_candidate", answers)
     print_table("show_inserted_candidate", "Inserted Candidate Details", {"voter_id": answers["voter_id"]})
     contests_in_record_exists = select_data(connection, "check_if_contests_in_record_exists", {
@@ -206,7 +226,7 @@ def show_admin_info():
 
 def user_flow():
     console.print(Panel("[bold yellow]User Login[/bold yellow]"))
-    voter_id = inquirer.text(message="Enter Voter ID: ")
+    voter_id = inquirer.text(message="Enter Voter ID")
     console.print(f"[green]Welcome, Voter {voter_id}![/green]")
     while True:
         action = show_user_menu()
@@ -215,7 +235,7 @@ def user_flow():
         elif action == 'See Results':
             sub_questions = [
                 inquirer.List('result_option',
-                              message="See Results for:",
+                              message="See Results for",
                               choices=[
                                   "Your Constituency",
                                   "All Candidates"
@@ -229,7 +249,7 @@ def user_flow():
         elif action == 'Candidate Information':
             sub_questions = [
                 inquirer.List('candidate_option',
-                              message="Candidate Information for:",
+                              message="Candidate Information for",
                               choices=[
                                   "Your Constituency",
                                   "All Candidates"
@@ -251,23 +271,28 @@ def user_flow():
         console.print("\n[bold blue]Returning to user menu...[/bold blue]\n")
 
 def admin_flow():
-    while True:
-        action = show_admin_menu()
-        if action == 'Add a new Voter to the DB':
-            add_voter()
-        elif action == 'Add a new Party to the DB':
-            add_party()
-        elif action == 'Add a new Candidate to the DB':
-            add_candidate()
-        elif action == 'Add a new Constituency to the DB':
-            add_constituency()
-        elif action == 'Add a new Admin to the DB':
-            add_admin()
-        elif action == 'Exit to Main Menu':
-            console.print("\n[bold green]Thanks for using the Electronic Voter Management System![/bold green]")
-            break
-        sleep(1)
-        console.print("\n[bold blue]Returning to admin menu...[/bold blue]\n")
+    console.print(Panel("[bold yellow]Admin Login[/bold yellow]"))
+    admin_id = inquirer.text(message="Enter Admin ID")
+    admin_pwd = inquirer.password(message="Enter Admin Password")
+    is_authenticated = authenticate_admin(admin_id, admin_pwd)
+    if is_authenticated:
+        while True:
+            action = show_admin_menu()
+            if action == 'Add a new Voter to the DB':
+                add_voter()
+            elif action == 'Add a new Party to the DB':
+                add_party()
+            elif action == 'Add a new Candidate to the DB':
+                add_candidate()
+            elif action == 'Add a new Constituency to the DB':
+                add_constituency()
+            elif action == 'Add a new Admin to the DB':
+                add_admin()
+            elif action == 'Exit to Main Menu':
+                console.print("\n[bold green]Thanks for using the Electronic Voter Management System![/bold green]")
+                break
+            sleep(1)
+            console.print("\n[bold blue]Returning to admin menu...[/bold blue]\n")
 
 def main():
     console.rule("[bold yellow]Electronic Voting System[/bold yellow]")
@@ -284,4 +309,5 @@ def main():
         sleep(1)
 
 if __name__ == "__main__":
+    init()
     main()

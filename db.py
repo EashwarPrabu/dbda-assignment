@@ -16,6 +16,21 @@ def connect_to_db():
         database=os.getenv('DB_NAME')
     )
 
+def create_table(connection, query_key):
+    cursor = None
+    try:
+        query = QUERY_MAP.get(query_key)
+        if not query:
+            raise ValueError(f"Query not found for key: {query_key}")
+
+        cursor = connection.cursor()
+        cursor.execute(query)
+        connection.commit()
+    except Exception as e:
+        print(f"Error occured during table creation:\n{e}")
+    finally:
+        cursor.close()
+
 # --- Retrieve Function ---
 def select_data(connection, query_key, params_dict):
     cursor = None
@@ -98,3 +113,26 @@ def build_table_from_query_result(data, query_key, table_name):
         table.add_row(*row_values)
 
     return table
+
+def check_and_add_foreign_key_constraint_exist(connection, check_query_key, alter_query_key):
+    cursor = None
+    try:
+        cursor = connection.cursor()
+
+        # Step 1: Check if constraint already exists
+        check_query = QUERY_MAP.get(check_query_key)
+        if not check_query:
+            raise ValueError(f"Query not found for key: {check_query_key}")
+        cursor.execute(check_query)
+        check_result = cursor.fetchone()
+
+        if not check_result:
+            # Step 2: Add the constraint
+            alter_query = QUERY_MAP.get(alter_query_key)
+            cursor.execute(alter_query)
+            connection.commit()
+            print("Foreign key constraint added successfully.")
+    except Exception as e:
+        print(f"Error checking or adding foreign key constraint:\n{e}")
+    finally:
+        cursor.close()
