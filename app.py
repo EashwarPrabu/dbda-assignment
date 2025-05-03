@@ -8,12 +8,6 @@ from db import connect_to_db, select_data, insert_data, select_all_data, build_t
 console = Console()
 connection = connect_to_db()
 
-def init():
-    tables = ["create_constituency", "create_party", "create_voter", "create_admin", "create_candidate", "create_contests_in"]
-    for table in tables:
-        create_table(connection, table)
-    check_and_add_foreign_key_constraint_exist(connection, "check_if_voter_fk_constraint_exists", "add_voter_fk_constraint")
-
 def login_menu():
     questions = [
         inquirer.List('role',
@@ -309,5 +303,4 @@ def main():
         sleep(1)
 
 if __name__ == "__main__":
-    init()
     main()

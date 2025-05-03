@@ -131,7 +131,6 @@ def check_and_add_foreign_key_constraint_exist(connection, check_query_key, alte
             alter_query = QUERY_MAP.get(alter_query_key)
             cursor.execute(alter_query)
             connection.commit()
-            print("Foreign key constraint added successfully.")
     except Exception as e:
         print(f"Error checking or adding foreign key constraint:\n{e}")
     finally:
