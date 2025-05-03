@@ -87,16 +87,6 @@ def add_admin():
     console.print("\n[bold cyan]Voter Information[/bold cyan]")
     insert_data(connection, "insert_admin", answers)
 
-# console.print(Panel("[bold cyan]Creating Tables, Constraints and Stored Procedures[/bold cyan]"))
-# with console.status("[bold green]Creating tables, constraints, and stored procedures...", spinner="dots"):
-#     init_tables()
-# console.print("[bold green]Tables, Constraints and Stored Procedures created successfully[/bold green]\n")
-
-# console.print(Panel("[bold cyan]Populating Tables with Sample Data[/bold cyan]"))
-# with console.status("[bold green]Inserting sample data...", spinner="dots"):
-#     populate_table()
-# console.print("[bold green]Sample Data inserted successfully[/bold green]\n")
-
 console.print(Panel("[bold cyan]Initializing Database[/bold cyan]"))
 with console.status("[green]Starting setup...", spinner="dots") as status:
     status.update("[green]Creating tables, constraints, and stored procedure...")
