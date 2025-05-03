@@ -87,21 +87,25 @@ def add_admin():
     console.print("\n[bold cyan]Voter Information[/bold cyan]")
     insert_data(connection, "insert_admin", answers)
 
-console.print(Panel("[bold cyan]Initializing Database[/bold cyan]"))
-with console.status("[green]Starting setup...", spinner="dots") as status:
-    status.update("[green]Creating tables, constraints, and stored procedure...")
-    init_tables()
-    time.sleep(0.75)
-    console.print("[bold green]Tables, Constraints and Stored Procedures created successfully[/bold green]")
+def database_helper():
+    console.print(Panel("[bold cyan]Initializing Database[/bold cyan]"))
+    with console.status("[green]Starting setup...", spinner="dots") as status:
+        status.update("[green]Creating tables, constraints, and stored procedure...")
+        init_tables()
+        time.sleep(0.75)
+        console.print("[bold green]Tables, Constraints and Stored Procedures created successfully[/bold green]")
 
-    status.update("[green]Inserting sample data...")
-    populate_table()
-    time.sleep(0.75)
-    console.print("[bold green]Sample Data inserted successfully[/bold green]\n")
+        status.update("[green]Inserting sample data...")
+        populate_table()
+        time.sleep(0.75)
+        console.print("[bold green]Sample Data inserted successfully[/bold green]\n")
 
-console.print(Panel("[bold cyan]Please enter Admin details[/bold cyan]"))
-add_admin()
-console.print("[bold green]Admin inserted successfully[/bold green]\n")
+    console.print(Panel("[bold cyan]Please enter Admin details[/bold cyan]"))
+    add_admin()
+    console.print("[bold green]Admin inserted successfully[/bold green]\n")
 
-console.print("[bold green]Database initialization complete![/bold green]")
-console.print("[bold green]Sample data has been populated in the tables![/bold green]")
+    console.print("[bold green]Database initialization complete![/bold green]")
+    console.print("[bold green]Sample data has been populated in the tables![/bold green]")
+
+if __name__ == "__main__":
+    database_helper()
